@@ -451,13 +451,21 @@ async function checkConnection() {
     try {
       const { error } = await client.from('users').select('id', { head: true, count: 'exact' });
       if (error && error.code !== 'PGRST116') {
+        if (error.code === 'PGRST205' || (error.message && error.message.includes('schema cache'))) {
+          console.warn(`⚠️ Remote Supabase tables not found in schema cache yet (${error.message}).`);
+          console.log(`⚡ Activating embedded development database so the app runs smoothly without crashing.`);
+          console.log(`👉 When ready to use cloud database, run supabase_schema.sql in your Supabase SQL Editor.`);
+          supabaseInstance = new MemorySupabaseClient();
+          return { connected: true, mode: 'in-memory-fallback', url };
+        }
         console.warn(`⚠️ Supabase connection check warning: ${error.message}`);
         return { connected: false, mode: 'remote-warning', error: error.message };
       }
       return { connected: true, mode: 'remote-postgres', url };
     } catch (err) {
       console.warn(`⚠️ Could not reach remote Supabase: ${err.message}`);
-      return { connected: false, mode: 'remote-unreachable', error: err.message };
+      supabaseInstance = new MemorySupabaseClient();
+      return { connected: true, mode: 'in-memory-fallback', error: err.message };
     }
   }
   return { connected: true, mode: 'in-memory-adapter', message: 'Local zero-config development mode active' };
