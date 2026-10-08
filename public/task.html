@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task View | TaskFlow Pro</title>
+  <meta name="description" content="View and manage individual task details in TaskFlow Pro.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body style="min-height: 100vh; background-color: var(--bg-primary); display: flex; flex-direction: column;">
+  <!-- Header -->
+  <header class="top-header" style="position: relative;">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <a href="dashboard.html" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+      <span style="font-weight: 700; font-size: 1.1rem;">Task Inspector</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <button class="btn btn-icon btn-secondary" id="theme-toggle-btn" onclick="Auth.toggleTheme()" title="Toggle Theme">☀️</button>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <main class="page-container" style="max-width: 800px; padding: 3rem 1.5rem;">
+    <div class="stat-card" id="task-view-container" style="padding: 2.25rem;">
+      <div style="text-align: center; color: var(--text-muted); padding: 3rem 0;">
+        Loading task details...
+      </div>
+    </div>
+  </main>
+
+  <script src="js/notifications.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {
+      window.location.href = 'login.html';
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get('id');
+
+    async function loadTask() {
+      const container = document.getElementById('task-view-container');
+      if (!taskId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">❓</div>
+            <h3>No Task Specified</h3>
+            <p>Please select a task from the dashboard or task list.</p>
+            <a href="dashboard.html" class="btn btn-primary">Return to Dashboard</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const res = await API.get(`/tasks/${taskId}`);
+        if (!res.success) return;
+        const task = res.data;
+
+        const isCompleted = task.status === 'Completed';
+        const prioClasses = { Low: 'badge-low', Medium: 'badge-med', High: 'badge-high', Urgent: 'badge-urgent' };
+        const prioClass = prioClasses[task.priority] || 'badge-med';
+
+        container.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
+            <div style="display:flex;gap:0.6rem;align-items:center;">
+              <span class="badge ${prioClass}">${task.priority}</span>
+              <span class="status-badge status-${task.status.toLowerCase().replace(' ', '-')}">${task.status}</span>
+              ${task.category ? `<span class="badge badge-med" style="color:${task.category.color};border-color:${task.category.color};">${task.category.icon || '📁'} ${task.category.name}</span>` : ''}
+            </div>
+            <button class="btn btn-sm ${task.isFavorite ? 'btn-primary' : 'btn-outline'}" onclick="toggleFav()">
+              ${task.isFavorite ? '⭐ Favorited' : '☆ Favorite'}
+            </button>
+          </div>
+
+          <h1 style="font-size:1.85rem;margin-bottom:1rem;line-height:1.3;${isCompleted ? 'text-decoration:line-through;color:var(--text-muted);' : ''}">${task.title}</h1>
+
+          ${task.description ? `<p style="font-size:1rem;color:var(--text-secondary);line-height:1.7;margin-bottom:2rem;white-space:pre-wrap;">${task.description}</p>` : '<p style="color:var(--text-muted);font-style:italic;margin-bottom:2rem;">No description provided.</p>'}
+
+          <!-- Subtasks -->
+          ${task.subtasks && task.subtasks.length > 0 ? `
+            <div style="background:var(--bg-tertiary);padding:1.25rem;border-radius:var(--radius-md);margin-bottom:2rem;border:1px solid var(--border-glass);">
+              <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;">Subtasks Checklist</h4>
+              ${task.subtasks.map((st, i) => `
+                <label style="display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0;cursor:pointer;">
+                  <input type="checkbox" class="task-checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask(${i}, this.checked)" />
+                  <span style="${st.completed ? 'text-decoration:line-through;color:var(--text-muted);' : ''}">${st.title}</span>
+                </label>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Metadata -->
+          <div class="grid-3" style="font-size:0.8125rem;color:var(--text-muted);padding-top:1.25rem;border-top:1px solid var(--border-glass);margin-bottom:2rem;">
+            <div><strong>Due Date:</strong><br>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'None'}</div>
+            <div><strong>Created:</strong><br>${new Date(task.createdAt).toLocaleString()}</div>
+            <div><strong>Updated:</strong><br>${new Date(task.updatedAt).toLocaleString()}</div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+            <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'}" onclick="toggleStatus('${isCompleted ? 'To Do' : 'Completed'}')">
+              ${isCompleted ? '↺ Mark as Incomplete' : '✓ Mark as Completed'}
+            </button>
+            <a href="dashboard.html" class="btn btn-secondary">Dashboard View</a>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <h3>Error Loading Task</h3>
+            <p>${err.message}</p>
+            <a href="dashboard.html" class="btn btn-primary">Return to Dashboard</a>
+          </div>
+        `;
+      }
+    }
+
+    async function toggleStatus(status) {
+      try {
+        await API.patch(`/tasks/${taskId}/status`, { status });
+        Toast.success(`Status updated to ${status}`);
+        loadTask();
+      } catch (err) {
+        Toast.error(err.message);
+      }
+    }
+
+    async function toggleFav() {
+      try {
+        await API.patch(`/tasks/${taskId}/favorite`, {});
+        Toast.info('Favorite status updated');
+        loadTask();
+      } catch (err) {
+        Toast.error(err.message);
+      }
+    }
+
+    async function toggleSubtask(index, completed) {
+      try {
+        const res = await API.get(`/tasks/${taskId}`);
+        if (!res.success) return;
+        const subtasks = res.data.subtasks;
+        subtasks[index].completed = completed;
+        await API.patch(`/tasks/${taskId}/subtasks`, { subtasks });
+        Toast.info('Subtask updated');
+        loadTask();
+      } catch (err) {
+        Toast.error(err.message);
+      }
+    }
+
+    loadTask();
+  </script>
+</body>
+</html>

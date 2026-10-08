@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager Pro | Modern Productivity & Task Management</title>
+  <meta name="description" content="A modern, high-performance task management application featuring drag-and-drop Kanban, project tracking, productivity metrics, and intelligent scheduling.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .landing-hero {
+      min-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem;
+      background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+    }
+    .landing-tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: var(--primary-light);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    .landing-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      max-width: 850px;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    [data-theme="light"] .landing-title {
+      background: linear-gradient(135deg, #0f172a 40%, #475569 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .landing-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      line-height: 1.6;
+      margin-bottom: 2.25rem;
+    }
+    .landing-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .landing-features {
+      padding: 4rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      backdrop-filter: blur(12px);
+      transition: transform var(--transition-normal);
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .feature-icon {
+      font-size: 2.25rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Landing Nav -->
+  <header style="height: 70px; border-bottom: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; background: var(--bg-glass); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div class="brand-icon">✓</div>
+      <span style="font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em;">TaskFlow<span style="color:var(--primary);">Pro</span></span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button class="btn btn-icon btn-secondary" id="theme-toggle-btn" onclick="Auth.toggleTheme()" title="Toggle Theme">☀️</button>
+      <a href="login.html" class="btn btn-secondary">Log In</a>
+      <a href="register.html" class="btn btn-primary">Get Started Free</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="landing-hero">
+      <div class="landing-tagline">
+        <span>⚡ Next-Generation Productivity</span>
+      </div>
+      <h1 class="landing-title">Master your tasks with intelligent workflow clarity</h1>
+      <p class="landing-subtitle">
+        Organize projects, prioritize effortlessly, track weekly productivity, and move tasks seamlessly across dynamic Kanban boards. Built with Vanilla JS & MongoDB for blazing speed.
+      </p>
+      <div class="landing-actions">
+        <a href="register.html" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-size: 1rem;">
+          Start Managing Tasks →
+        </a>
+        <a href="login.html" class="btn btn-secondary" style="padding: 0.85rem 1.75rem; font-size: 1rem;">
+          Live Demo Login
+        </a>
+      </div>
+
+      <!-- Quick Demo Credentials Callout -->
+      <div style="margin-top: 2.5rem; padding: 0.85rem 1.5rem; background: var(--bg-tertiary); border: 1px solid var(--border-glass); border-radius: var(--radius-md); font-size: 0.8125rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.75rem;">
+        <span>💡 <strong>Quick Demo Access:</strong> Use <code>alex@taskmanager.com</code> or <code>admin@taskmanager.com</code> (password: <code>password123</code>)</span>
+      </div>
+    </section>
+
+    <!-- Key Feature Grid -->
+    <section class="landing-features">
+      <div style="text-align: center; margin-bottom: 3rem;">
+        <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Engineered for peak performance</h2>
+        <p style="color: var(--text-secondary); max-width: 550px; margin: 0 auto;">Everything you need to plan, execute, and review your daily deliverables.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 style="font-size: 1.2rem;">Live Productivity Analytics</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            7-day completion trends, status breakdowns, completion percentage gauges, and real-time overdue alerts.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3 style="font-size: 1.2rem;">Interactive Kanban Board</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Smooth native drag-and-drop between To Do, In Progress, and Completed swimlanes with instant MongoDB persistence.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <h3 style="font-size: 1.2rem;">Multi-Criteria Filter & Search</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Filter simultaneously by priority, custom project category, due dates, tags, and search text with zero latency.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">☑️</div>
+          <h3 style="font-size: 1.2rem;">Subtasks & Progress Tracking</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Break complex tasks into bite-sized actionable checklist items with visual completion progress bars.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🍅</div>
+          <h3 style="font-size: 1.2rem;">Built-in Pomodoro Focus Timer</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Stay focused with 25-minute structured deep work sessions, browser chime notifications, and quick shortcuts.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">👑</div>
+          <h3 style="font-size: 1.2rem;">Role-Based Administration</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Protected admin endpoints with full platform statistics, user moderation, and complete task oversight.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--border-glass); padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8125rem; background: var(--bg-secondary);">
+    <p>© 2026 TaskFlow Pro • Node.js, Express, MongoDB & Vanilla JavaScript Stack • Fast, Secure & Responsive</p>
+  </footer>
+
+  <script src="js/notifications.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // If user is already logged in, show button to jump straight to Dashboard
+    if (Auth.isAuthenticated()) {
+      const heroActions = document.querySelector('.landing-actions');
+      if (heroActions) {
+        heroActions.innerHTML = `
+          <a href="dashboard.html" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1.05rem;">
+            Open Your Dashboard →
+          </a>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

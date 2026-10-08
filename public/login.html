@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | TaskFlow Pro</title>
+  <meta name="description" content="Sign in to your TaskFlow Pro productivity dashboard.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 60%);
+    }
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      backdrop-filter: blur(16px);
+    }
+    .demo-chips {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-glass);
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem;">
+      <a href="index.html" style="display: flex; align-items: center; gap: 0.6rem; text-decoration: none;">
+        <div class="brand-icon">✓</div>
+        <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary);">TaskFlow<span style="color:var(--primary);">Pro</span></span>
+      </a>
+      <button class="btn btn-icon btn-secondary btn-sm" id="theme-toggle-btn" onclick="Auth.toggleTheme()" title="Toggle Theme">☀️</button>
+    </div>
+
+    <h2 style="font-size: 1.6rem; margin-bottom: 0.4rem;">Welcome back</h2>
+    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.75rem;">
+      Log in to access your projects, tasks, and productivity statistics.
+    </p>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email Address</label>
+        <input type="email" id="login-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="form-label" for="login-password">Password</label>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+          <button type="button" id="pwd-toggle-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem;" title="Toggle password visibility">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; padding: 0.75rem;">
+        Sign In to Dashboard
+      </button>
+    </form>
+
+    <div class="demo-chips">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Quick Demo One-Click Access</span>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" class="btn btn-outline btn-sm" style="flex: 1;" onclick="fillDemoCredentials('alex@taskmanager.com', 'password123')">
+          👤 User (Alex)
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" style="flex: 1;" onclick="fillDemoCredentials('admin@taskmanager.com', 'password123')">
+          👑 Admin (Director)
+        </button>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+      Don't have an account? <a href="register.html" style="font-weight: 600;">Create one here</a>
+    </div>
+  </div>
+
+  <script src="js/notifications.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    Auth.redirectIfAuthenticated();
+
+    // Password toggle
+    const pwdInput = document.getElementById('login-password');
+    const pwdToggle = document.getElementById('pwd-toggle-btn');
+    pwdToggle.addEventListener('click', () => {
+      const type = pwdInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      pwdInput.setAttribute('type', type);
+      pwdToggle.textContent = type === 'password' ? '👁️' : '🔒';
+    });
+
+    // One-click demo credentials filler
+    function fillDemoCredentials(email, pwd) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = pwd;
+      Toast.info(`Filled credentials for ${email}`);
+    }
+
+    // Handle Login Form Submit
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const submitBtn = document.getElementById('login-submit-btn');
+
+      if (!email || !password) {
+        Toast.error('Please enter both email and password');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying credentials...';
+
+      try {
+        await Auth.login(email, password);
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 500);
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In to Dashboard';
+      }
+    });
+  </script>
+</body>
+</html>

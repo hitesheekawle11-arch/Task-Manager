@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | TaskFlow Pro Workstation</title>
+  <meta name="description" content="Manage projects, track tasks, and boost daily productivity with TaskFlow Pro.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/kanban.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <!-- Mobile Sidebar Overlay -->
+  <div class="sidebar-overlay" onclick="App.closeMobileSidebar()"></div>
+
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <div class="brand-icon">✓</div>
+          <span>TaskFlow<span style="color:var(--primary);">Pro</span></span>
+        </div>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.closeMobileSidebar()" style="display:none;" id="sidebar-close-btn">✕</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Workspace Views</div>
+
+        <div class="nav-item active" id="nav-dashboard" onclick="App.switchView('dashboard')">
+          <div class="nav-item-left">
+            <span>📊</span>
+            <span>Dashboard</span>
+          </div>
+        </div>
+
+        <div class="nav-item" id="nav-tasks" onclick="App.switchView('tasks')">
+          <div class="nav-item-left">
+            <span>📋</span>
+            <span>All Tasks</span>
+          </div>
+          <span class="nav-badge" id="sidebar-all-count">0</span>
+        </div>
+
+        <div class="nav-item" id="nav-kanban" onclick="App.switchView('kanban')">
+          <div class="nav-item-left">
+            <span>📌</span>
+            <span>Kanban Board</span>
+          </div>
+        </div>
+
+        <div class="nav-item" id="nav-calendar" onclick="App.switchView('calendar')">
+          <div class="nav-item-left">
+            <span>📅</span>
+            <span>Calendar</span>
+          </div>
+        </div>
+
+        <div class="nav-item" id="nav-categories" onclick="App.switchView('categories')">
+          <div class="nav-item-left">
+            <span>📁</span>
+            <span>Categories</span>
+          </div>
+        </div>
+
+        <div class="nav-section-title">Quick Filters</div>
+
+        <div class="nav-item" onclick="Tasks.applyQuickFilter('overdue')">
+          <div class="nav-item-left">
+            <span>⚠️</span>
+            <span>Overdue Tasks</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="Tasks.applyQuickFilter('today')">
+          <div class="nav-item-left">
+            <span>⏳</span>
+            <span>Due Today</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="Tasks.applyQuickFilter('favorites')">
+          <div class="nav-item-left">
+            <span>⭐</span>
+            <span>Favorites</span>
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="Tasks.applyQuickFilter('archived')">
+          <div class="nav-item-left">
+            <span>📦</span>
+            <span>Archived</span>
+          </div>
+        </div>
+
+        <div class="nav-section-title">Administration</div>
+
+        <div class="nav-item" id="nav-admin-link" style="display:none;" onclick="App.switchView('admin')">
+          <div class="nav-item-left">
+            <span>👑</span>
+            <span>Admin Console</span>
+          </div>
+          <span class="badge badge-urgent" style="font-size:0.6rem;">Admin</span>
+        </div>
+
+        <div class="nav-item" id="nav-settings" onclick="App.switchView('settings')">
+          <div class="nav-item-left">
+            <span>⚙️</span>
+            <span>Account Settings</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- User footer in sidebar -->
+      <div class="sidebar-footer">
+        <div class="user-snippet" onclick="App.switchView('settings')" title="Edit profile">
+          <div class="user-avatar user-avatar-initials">US</div>
+          <div class="user-info">
+            <span class="user-name user-name-display">Loading...</span>
+            <span class="user-role-badge user-role-display">user</span>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="Auth.logout()" title="Log out">🚪</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Sticky App Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle-btn" onclick="App.toggleMobileSidebar()" title="Toggle Menu">☰</button>
+
+          <!-- Search Input -->
+          <div class="search-bar-container">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="search-input" 
+              placeholder="Search tasks, descriptions, or #tags... (Press /)" 
+            />
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Pomodoro Timer Widget -->
+          <div class="pomodoro-pill" title="Pomodoro Focus Timer">
+            <div class="pomodoro-dot"></div>
+            <span id="pomodoro-time-text">25:00</span>
+            <button class="btn btn-icon btn-sm" style="width:24px;height:24px;background:none;border:none;color:inherit;" onclick="App.togglePomodoro()" title="Start/Pause Timer">⏯️</button>
+            <button class="btn btn-icon btn-sm" style="width:24px;height:24px;background:none;border:none;color:inherit;" onclick="App.resetPomodoro()" title="Reset Timer">↺</button>
+          </div>
+
+          <!-- Shortcuts Dialog Button -->
+          <button class="btn btn-icon btn-secondary" onclick="App.openShortcutsModal()" title="Keyboard Shortcuts (?)">⌨️</button>
+
+          <!-- Theme Toggle Button -->
+          <button class="btn btn-icon btn-secondary" id="theme-toggle-btn" onclick="Auth.toggleTheme()" title="Toggle Dark/Light Mode">☀️</button>
+
+          <!-- New Task Button -->
+          <button class="btn btn-primary" onclick="Tasks.openCreateModal()">
+            <span>+</span> <span>New Task</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Scrollable Page Area -->
+      <main class="page-container">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD ANALYTICS               -->
+        <!-- ========================================== -->
+        <section id="view-dashboard" class="view-section">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Executive Dashboard</h1>
+              <p class="page-subtitle">Track your deliverables, productivity momentum, and project milestones.</p>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+              <button class="btn btn-secondary btn-sm" onclick="Tasks.exportCSV()">📥 Export CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="Dashboard.fetchAndRender()">🔄 Refresh Stats</button>
+            </div>
+          </div>
+
+          <!-- Overdue Warning Banner (dynamic) -->
+          <div id="overdue-banner-container"></div>
+
+          <!-- Metric Cards Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">Total Tasks</span>
+                <div class="stat-icon-wrapper" style="background:var(--primary-light);color:var(--primary);">📋</div>
+              </div>
+              <div class="stat-value" id="stat-total-tasks">0</div>
+              <div class="stat-caption">All active deliverables</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">In Progress</span>
+                <div class="stat-icon-wrapper" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;">⚡</div>
+              </div>
+              <div class="stat-value" id="stat-in-progress">0</div>
+              <div class="stat-caption">Currently active work</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">Completed</span>
+                <div class="stat-icon-wrapper" style="background:var(--success-bg);color:var(--success);">✅</div>
+              </div>
+              <div class="stat-value" id="stat-completed">0</div>
+              <div class="stat-caption">Successfully resolved</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">Overdue</span>
+                <div class="stat-icon-wrapper" style="background:var(--danger-bg);color:var(--danger);">⚠️</div>
+              </div>
+              <div class="stat-value" id="stat-overdue" style="color:var(--danger);">0</div>
+              <div class="stat-caption">Passed deadlines</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">High & Urgent</span>
+                <div class="stat-icon-wrapper" style="background:var(--warning-bg);color:var(--warning);">🔥</div>
+              </div>
+              <div class="stat-value" id="stat-high-prio">0</div>
+              <div class="stat-caption">Top priority tasks</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <span class="stat-title">Completion Rate</span>
+                <div class="stat-icon-wrapper" style="background:var(--primary-light);color:var(--primary);">🎯</div>
+              </div>
+              <div class="stat-value" id="stat-completion-rate">0%</div>
+              <div class="stat-progress-bar">
+                <div class="stat-progress-fill" id="stat-progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="charts-grid">
+            <!-- Weekly Productivity Chart -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">📈 Weekly Productivity Trend</h3>
+                <span style="font-size:0.75rem;color:var(--text-muted);">Completed tasks per day</span>
+              </div>
+              <div class="bar-chart-container" id="weekly-chart-bars">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Distribution Breakdown Card -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">📊 Status & Priority Breakdown</h3>
+              </div>
+              <div style="margin-bottom:1.5rem;">
+                <h4 style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:0.6rem;text-transform:uppercase;">By Status</h4>
+                <div id="status-breakdown-container"></div>
+              </div>
+              <div>
+                <h4 style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:0.6rem;text-transform:uppercase;">By Priority</h4>
+                <div id="priority-breakdown-container"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Lists 3-Column Grid -->
+          <div class="grid-3" style="margin-top:2rem;">
+            <div class="chart-card" style="padding:1.25rem;">
+              <h3 style="font-size:0.95rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <span>⏳</span> <span>Due Today</span>
+              </h3>
+              <div id="dashboard-due-today-list"></div>
+            </div>
+
+            <div class="chart-card" style="padding:1.25rem;">
+              <h3 style="font-size:0.95rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <span>🆕</span> <span>Recently Created</span>
+              </h3>
+              <div id="dashboard-recent-created-list"></div>
+            </div>
+
+            <div class="chart-card" style="padding:1.25rem;">
+              <h3 style="font-size:0.95rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <span>✨</span> <span>Recently Completed</span>
+              </h3>
+              <div id="dashboard-recent-completed-list"></div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: ALL TASKS (LIST VIEW & FILTERS)   -->
+        <!-- ========================================== -->
+        <section id="view-tasks" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Tasks Management</h1>
+              <p class="page-subtitle">Filter, search, organize subtasks and maintain complete oversight.</p>
+            </div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="Tasks.exportCSV()">📥 Export CSV</button>
+              <button class="btn btn-primary btn-sm" onclick="Tasks.openCreateModal()">+ Create Task</button>
+            </div>
+          </div>
+
+          <!-- Multi-Criteria Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <!-- Status Filter -->
+              <select class="filter-select" id="filter-status" onchange="Tasks.applyFilter('status', this.value)">
+                <option value="">All Statuses</option>
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+
+              <!-- Priority Filter -->
+              <select class="filter-select" id="filter-priority" onchange="Tasks.applyFilter('priority', this.value)">
+                <option value="">All Priorities</option>
+                <option value="Urgent">Urgent</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+
+              <!-- Category Filter -->
+              <select class="filter-select" id="filter-category" onchange="Tasks.applyFilter('category', this.value)">
+                <option value="">All Categories</option>
+              </select>
+
+              <!-- Due Date Filter -->
+              <select class="filter-select" id="filter-due" onchange="Tasks.applyFilter('dueFilter', this.value)">
+                <option value="">All Due Dates</option>
+                <option value="today">Due Today</option>
+                <option value="overdue">Overdue Only</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="nodate">No Due Date</option>
+              </select>
+
+              <!-- Sorting -->
+              <select class="filter-select" id="filter-sort" onchange="Tasks.applyFilter('sort', this.value)">
+                <option value="newest">Sort: Newest First</option>
+                <option value="oldest">Sort: Oldest First</option>
+                <option value="dueDate">Sort: Due Date</option>
+                <option value="priority">Sort: Highest Priority</option>
+                <option value="updated">Sort: Recently Updated</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <button 
+                class="btn btn-outline btn-sm" 
+                onclick="Tasks.currentFilters = { search:'', status:'', priority:'', category:'', tag:'', dueFilter:'', isFavorite:'', archived:'false', sort:'newest', page:1, limit:8 }; document.getElementById('search-input').value=''; document.querySelectorAll('.filter-select').forEach(s => s.value=''); Tasks.fetchAndRender();"
+                title="Reset all filters"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </div>
+
+          <!-- Tasks List Container -->
+          <div class="task-table-wrapper">
+            <div class="task-list" id="tasks-list-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Pagination Container -->
+          <div class="pagination-container" id="task-pagination-container">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: KANBAN DRAG & DROP BOARD          -->
+        <!-- ========================================== -->
+        <section id="view-kanban" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Interactive Kanban Board</h1>
+              <p class="page-subtitle">Drag tasks between swimlanes to automatically update status in MongoDB.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="Tasks.openCreateModal()">+ Add Card</button>
+          </div>
+
+          <div class="kanban-board-wrapper" id="kanban-board">
+            <!-- Dynamically populated with To Do, In Progress, Completed -->
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: MONTHLY CALENDAR VIEW             -->
+        <!-- ========================================== -->
+        <section id="view-calendar" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Schedule & Deadlines</h1>
+              <p class="page-subtitle">Visualize deliverables and upcoming milestones by date.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="Tasks.openCreateModal()">+ Add Scheduled Task</button>
+          </div>
+
+          <div id="calendar-view-container">
+            <!-- Injected by calendar.js -->
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: CATEGORIES / PROJECTS             -->
+        <!-- ========================================== -->
+        <section id="view-categories" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Categories & Projects</h1>
+              <p class="page-subtitle">Structure tasks into work streams, departments, or life areas.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="Categories.openCreateModal()">+ New Category</button>
+          </div>
+
+          <div id="categories-list-container">
+            <!-- Injected by categories.js -->
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 6: ADMIN CONSOLE                     -->
+        <!-- ========================================== -->
+        <section id="view-admin" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">System Administration</h1>
+              <p class="page-subtitle">Global platform overview, user moderation, and management.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="Admin.loadAdminData()">🔄 Refresh</button>
+          </div>
+
+          <!-- Admin Stats -->
+          <div class="grid-4" style="margin-bottom:2rem;">
+            <div class="stat-card">
+              <span class="stat-title">Total Users</span>
+              <div class="stat-value" id="admin-stat-total-users">0</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">Active Users</span>
+              <div class="stat-value" id="admin-stat-active-users">0</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">System Tasks</span>
+              <div class="stat-value" id="admin-stat-total-tasks">0</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">Completed Tasks</span>
+              <div class="stat-value" id="admin-stat-completed-tasks">0</div>
+            </div>
+          </div>
+
+          <!-- User Management Table -->
+          <div class="task-table-wrapper">
+            <table style="width:100%;border-collapse:collapse;text-align:left;">
+              <thead>
+                <tr style="background:var(--bg-tertiary);border-bottom:1px solid var(--border-glass);font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.05em;">
+                  <th style="padding:0.85rem 1.25rem;">User</th>
+                  <th style="padding:0.85rem 1.25rem;">Role</th>
+                  <th style="padding:0.85rem 1.25rem;">Status</th>
+                  <th style="padding:0.85rem 1.25rem;">Tasks</th>
+                  <th style="padding:0.85rem 1.25rem;">Joined</th>
+                  <th style="padding:0.85rem 1.25rem;text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <!-- Injected dynamically by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 7: ACCOUNT SETTINGS & PROFILE        -->
+        <!-- ========================================== -->
+        <section id="view-settings" class="view-section" style="display:none;">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Account Settings</h1>
+              <p class="page-subtitle">Manage your profile information and credentials.</p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Profile Info Card -->
+            <div class="stat-card">
+              <h3 style="font-size:1.15rem;margin-bottom:1.25rem;">👤 Profile Information</h3>
+              <form onsubmit="App.handleProfileUpdate(event)">
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" id="settings-name" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email Address (Read-only)</label>
+                  <input type="email" id="settings-email" class="form-input" disabled style="opacity:0.6;" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Avatar Image URL (Optional)</label>
+                  <input type="url" id="settings-avatar" class="form-input" placeholder="https://..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bio / Tagline</label>
+                  <textarea id="settings-bio" class="form-textarea" placeholder="Tell us about yourself..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">Save Profile Changes</button>
+              </form>
+            </div>
+
+            <!-- Password Change Card -->
+            <div class="stat-card">
+              <h3 style="font-size:1.15rem;margin-bottom:1.25rem;">🔒 Change Password</h3>
+              <form id="settings-password-form" onsubmit="App.handlePasswordUpdate(event)">
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input type="password" id="settings-current-pwd" class="form-input" required autocomplete="current-password" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input type="password" id="settings-new-pwd" class="form-input" minlength="6" required autocomplete="new-password" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Confirm New Password</label>
+                  <input type="password" id="settings-confirm-pwd" class="form-input" minlength="6" required autocomplete="new-password" />
+                </div>
+                <button type="submit" class="btn btn-secondary" style="margin-top:0.5rem;">Update Password</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 1: CREATE / EDIT TASK                                       -->
+  <!-- ================================================================= -->
+  <div class="modal-overlay" id="task-edit-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="task-modal-title">Create New Task</h3>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="Tasks.closeModal()">✕</button>
+      </div>
+
+      <form id="task-form" onsubmit="Tasks.handleFormSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="task-form-id" />
+
+          <div class="form-group">
+            <label class="form-label" for="task-title">Task Title *</label>
+            <input type="text" id="task-title" class="form-input" placeholder="e.g. Build REST API for task endpoints" required maxlength="120" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="task-desc">Description</label>
+            <textarea id="task-desc" class="form-textarea" placeholder="Add detailed context, links, or instructions..."></textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="task-status">Status</label>
+              <select id="task-status" class="form-select">
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="task-priority">Priority</label>
+              <select id="task-priority" class="form-select">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="task-due-date">Due Date</label>
+              <input type="date" id="task-due-date" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="task-category">Category / Project</label>
+              <select id="task-category" class="form-select">
+                <option value="">Select a Category</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="task-tags">Tags (comma-separated)</label>
+            <input type="text" id="task-tags" class="form-input" placeholder="e.g. frontend, backend, security" />
+          </div>
+
+          <!-- Subtasks interactive editor -->
+          <div class="form-group" style="background:var(--bg-tertiary);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-glass);">
+            <label class="form-label" style="margin-bottom:0.5rem;">Subtasks Checklist</label>
+            <div id="modal-subtasks-list"></div>
+            <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+              <input type="text" id="new-subtask-input" class="form-input" placeholder="Add subtask item..." onkeydown="if(event.key==='Enter'){event.preventDefault();Tasks.addModalSubtask();}" />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="Tasks.addModalSubtask()">Add</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="task-notes">Additional Notes</label>
+            <textarea id="task-notes" class="form-textarea" placeholder="Personal notes, scratchpad info..." style="min-height:60px;"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="Tasks.closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 2: TASK DETAILS VIEW                                        -->
+  <!-- ================================================================= -->
+  <div class="modal-overlay" id="task-detail-modal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 style="font-size:1.1rem;">Task Overview</h3>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="Tasks.closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body" id="task-detail-content">
+        <!-- Dynamically populated by Tasks.openDetailModal() -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 3: CREATE / EDIT CATEGORY                                   -->
+  <!-- ================================================================= -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="category-modal-title">Create Category</h3>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="Categories.closeModal()">✕</button>
+      </div>
+
+      <form onsubmit="Categories.handleFormSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="category-id" />
+
+          <div class="form-group">
+            <label class="form-label" for="category-name">Category Name *</label>
+            <input type="text" id="category-name" class="form-input" placeholder="e.g. Mobile App, Health, Finances" required maxlength="40" />
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="category-color">Color</label>
+              <input type="color" id="category-color" class="form-input" value="#6366f1" style="height:42px;padding:2px 6px;cursor:pointer;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="category-icon">Icon Emoji</label>
+              <input type="text" id="category-icon" class="form-input" value="📁" maxlength="4" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category-desc">Description</label>
+            <textarea id="category-desc" class="form-textarea" placeholder="Purpose or context of this category..." maxlength="150" style="min-height:70px;"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="Categories.closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 4: KEYBOARD SHORTCUTS REFERENCE                             -->
+  <!-- ================================================================= -->
+  <div class="modal-overlay" id="shortcuts-modal">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>⌨️ Keyboard Shortcuts</h3>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.closeShortcutsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border-glass);">
+            <span>Create new task</span>
+            <kbd style="background:var(--bg-tertiary);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:0.8rem;">N</kbd>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border-glass);">
+            <span>Focus global search</span>
+            <kbd style="background:var(--bg-tertiary);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:0.8rem;">/</kbd>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border-glass);">
+            <span>Toggle Dark / Light mode</span>
+            <kbd style="background:var(--bg-tertiary);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:0.8rem;">D</kbd>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border-glass);">
+            <span>Open this shortcuts reference</span>
+            <kbd style="background:var(--bg-tertiary);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:0.8rem;">?</kbd>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;">
+            <span>Close modal / unfocus</span>
+            <kbd style="background:var(--bg-tertiary);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:0.8rem;">Esc</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Core Client Scripts -->
+  <script src="js/notifications.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/categories.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/kanban.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
